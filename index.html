@@ -1,1 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Restoration & Maintenance | MCN Review | Pillitteri</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .transition-all { transition: all 0.3s ease; }
+        .recall-mode .reveal-text {
+            background-color: #cbd5e1;
+            color: transparent;
+            border-radius: 0.375rem;
+            padding: 0 0.25rem;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+            box-shadow: inset 0 0 0 1px #94a3b8;
+        }
+        .recall-mode .reveal-text:hover,
+        .recall-mode .reveal-text.revealed {
+            background-color: #d9f99d;
+            color: #1e293b;
+            box-shadow: none;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #65a30d; border-radius: 8px; }
+        .content-section { animation: fade 0.3s ease; }
+        @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .quiz-feedback-correct { background-color: #dcfce7; border-left: 4px solid #22c55e; }
+        .quiz-feedback-wrong { background-color: #fee2e2; border-left: 4px solid #ef4444; }
+        .locked-section { opacity: 0.6; cursor: not-allowed; pointer-events: none; }
+        .flashcard { background: #fff; border-radius: 1rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); transition: transform 0.2s; cursor: pointer; border: 1px solid #e2e8f0; }
+        .flashcard:hover { transform: translateY(-5px); }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: { rnm: { light: '#ecfccb', DEFAULT: '#65a30d', dark: '#4d7c0f' } } } }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 h-screen flex flex-col md:flex-row font-sans text-slate-800 overflow-hidden">
 
+    <!-- Mobile Header -->
+    <div class="md:hidden bg-rnm-dark text-white p-4 flex justify-between items-center shadow-md z-30 shrink-0">
+        <button onclick="toggleMobileMenu()" class="text-white focus:outline-none z-40">
+            <i class="fa-solid fa-bars text-2xl"></i>
+        </button>
+        <h1 class="font-bold text-lg absolute left-1/2 transform -translate-x-1/2 pointer-events-none">
+            <i class="fa-solid fa-hand-holding-heart mr-2"></i> Restoration & Maintenance
+        </h1>
+        <div class="w-8"></div>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <nav id="sidebar" class="hidden md:flex flex-col w-full md:w-80 bg-white shadow-2xl h-full absolute md:relative z-30 transition-transform duration-300 shrink-0 border-r border-slate-200">
+        <div class="p-6 bg-gradient-to-br from-rnm-dark to-rnm text-white hidden md:block shrink-0">
+            <h1 class="font-black text-2xl tracking-wide"><i class="fa-regular fa-hand-peace mr-2"></i> Restoration & Maintenance</h1>
+            <p class="text-sm text-lime-200 mt-1 font-medium">Adele Pillitteri · MCN</p>
+        </div>
+        <div class="flex-1 overflow-y-auto py-4">
+            <ul class="space-y-1 text-sm font-medium">
+                <li><button onclick="showSection('home')" id="btn-home" class="nav-btn w-full text-left px-6 py-3 bg-rnm-light text-rnm-dark border-r-4 border-rnm-dark transition-colors"><i class="fa-solid fa-house w-6 nav-icon"></i><i class="fa-solid fa-lock w-6 hidden"></i> Home / Start</button></li>
+                <li><button onclick="showSection('restoration')" id="btn-restoration" class="nav-btn w-full text-left px-6 py-3 text-slate-700 hover:bg-slate-50 transition-colors locked-section"><i class="fa-solid fa-heartbeat w-6 nav-icon hidden"></i><i class="fa-solid fa-lock w-6 text-slate-400"></i> Restoration (Care During Illness)</button></li>
+                <li><button onclick="showSection('hospitalization')" id="btn-hospitalization" class="nav-btn w-full text-left px-6 py-3 text-slate-700 hover:bg-slate-50 transition-colors locked-section"><i class="fa-solid fa-hospital-user w-6 nav-icon hidden"></i><i class="fa-solid fa-lock w-6 text-slate-400"></i> Impact of Hospitalization</button></li>
+                <li><button onclick="showSection('nursing_care')" id="btn-nursing_care" class="nav-btn w-full text-left px-6 py-3 text-slate-700 hover:bg-slate-50 transition-colors locked-section"><i class="fa-solid fa-user-nurse w-6 nav-icon hidden"></i><i class="fa-solid fa-lock w-6 text-slate-400"></i> Nursing Interventions & Family‑Centered Care</button></li>
+                <li><button onclick="showSection('maintenance')" id="btn-maintenance" class="nav-btn w-full text-left px-6 py-3 text-slate-700 hover:bg-slate-50 transition-colors locked-section"><i class="fa-solid fa-leaf w-6 nav-icon hidden"></i><i class="fa-solid fa-lock w-6 text-slate-400"></i> Health Maintenance (Well‑Child)</button></li>
+                <li><button onclick="showSection('age_groups')" id="btn-age_groups" class="nav-btn w-full text-left px-6 py-3 text-slate-700 hover:bg-slate-50 transition-colors locked-section"><i class="fa-solid fa-children w-6 nav-icon hidden"></i><i class="fa-solid fa-lock w-6 text-slate-400"></i> Maintenance by Age (Toddler to Adolescent)</button></li>
+                <li><button onclick="showSection('chronic')" id="btn-chronic" class="nav-btn w-full text-left px-6 py-3 text-slate-700 hover:bg-slate-50 transition-colors locked-section"><i class="fa-solid fa-wheelchair w-6 nav-icon hidden"></i><i class="fa-solid fa-lock w-6 text-slate-400"></i> Chronic Illness & Special Needs</button></li>
+                <li><button onclick="showSection('flashcards')" id="btn-flashcards" class="nav-btn w-full text-left px-6 py-3 text-slate-700 hover:bg-slate-50 transition-colors border-t border-slate-200 mt-2 locked-section"><i class="fa-solid fa-cards w-6 text-rnm nav-icon hidden"></i><i class="fa-solid fa-lock w-6 text-slate-400"></i> Flashcards & Mnemonics</button></li>
+                <li><button onclick="showSection('final_quiz_sec')" id="btn-final_quiz_sec" class="nav-btn w-full text-left px-6 py-3 text-slate-700 hover:bg-slate-50 transition-colors locked-section"><i class="fa-solid fa-graduation-cap w-6 text-amber-500 nav-icon hidden"></i><i class="fa-solid fa-lock w-6 text-slate-400"></i> Final 50‑Item Exam</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="flex-1 h-full overflow-y-auto bg-slate-100 relative w-full">
+        <div class="fixed top-16 md:top-4 right-4 md:right-8 z-40 flex items-center bg-white/90 backdrop-blur px-4 py-3 rounded-full shadow-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors" onclick="toggleRecallMode()">
+            <span class="mr-3 text-sm font-bold text-slate-700 hidden md:inline"><i class="fa-solid fa-brain text-rnm mr-1"></i> Active Recall</span>
+            <button id="recall-toggle" class="w-12 h-6 bg-slate-300 rounded-full relative transition-colors duration-300 focus:outline-none shadow-inner pointer-events-none">
+                <div id="recall-knob" class="w-5 h-5 bg-white rounded-full absolute top-0.5 left-0.5 transition-transform duration-300 shadow"></div>
+            </button>
+        </div>
+
+        <div class="p-4 md:p-8 max-w-6xl mx-auto pb-32">
+            <!-- HOME SECTION -->
+            <section id="home" class="content-section flex flex-col items-center justify-center min-h-[80vh] text-center block">
+                <div class="bg-gradient-to-br from-slate-800 to-rnm-dark text-white rounded-3xl shadow-2xl p-10 md:p-16 w-full relative overflow-hidden">
+                    <div class="absolute top-0 right-0 -mt-10 -mr-10 text-white opacity-5 pointer-events-none"><i class="fa-solid fa-hand-holding-heart text-[20rem]"></i></div>
+                    <div class="relative z-10">
+                        <div class="bg-white/10 backdrop-blur-sm inline-block p-4 rounded-full text-lime-300 mb-6 shadow-sm border border-white/20">
+                            <i class="fa-solid fa-book-open text-5xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-300 mb-2 uppercase tracking-widest">Maternal & Child Health Nursing</h3>
+                        <h1 class="text-4xl md:text-6xl font-black text-white mb-6 leading-tight drop-shadow-md">Restoration & Maintenance</h1>
+                        <div class="bg-white/10 backdrop-blur inline-block px-6 py-3 rounded-full mb-10 border border-white/20">
+                            <p class="text-lg text-white font-medium">Care During Illness · Health Promotion · Chronic Conditions | <strong>Adele Pillitteri, 7e</strong></p>
+                        </div>
+                        <button onclick="unlockFirstSection()" class="bg-slate-600 hover:bg-slate-500 text-white font-black py-4 px-10 rounded-full shadow-xl transition-transform hover:scale-105 text-lg flex items-center mx-auto focus:outline-none">
+                            Begin Module <i class="fa-solid fa-arrow-right ml-3"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RESTORATION (CARE DURING ILLNESS) -->
+            <section id="restoration" class="content-section hidden">
+                <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+                    <h2 class="text-3xl font-black text-slate-800 mb-4 border-b-2 border-rnm pb-3"><i class="fa-solid fa-heartbeat text-rnm mr-4"></i> Restoration: Care During Illness</h2>
+                    <p>Restoration focuses on returning the child to optimal health after acute illness, managing chronic conditions, and minimizing complications. Key components:</p>
+                    <ul class="list-disc pl-6 space-y-2 mt-3">
+                        <li><strong>Physical restoration:</strong> <span class="reveal-text">Administer medications, monitor vital signs, promote hydration/nutrition, manage symptoms (pain, fever, dyspnea).</span></li>
+                        <li><strong>Emotional restoration:</strong> <span class="reveal-text">Address fear, anxiety, regression; provide age‑appropriate explanations and play therapy.</span></li>
+                        <li><strong>Family support:</strong> <span class="reveal-text">Involve parents in care, offer education about illness and home care, connect to resources.</span></li>
+                    </ul>
+                    <div class="bg-amber-50 p-3 rounded-lg mt-4"><i class="fa-regular fa-lightbulb"></i> <strong>Key principle:</strong> Child’s developmental stage influences how they perceive illness – use therapeutic communication and play.</div>
+                    <button onclick="openQuiz('restoration')" class="mt-6 w-full bg-slate-800 text-white font-black py-3 rounded-xl">Take Quiz → Unlock Next</button>
+                </div>
+            </section>
+
+            <!-- IMPACT OF HOSPITALIZATION -->
+            <section id="hospitalization" class="content-section hidden">
+                <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+                    <h2 class="text-3xl font-black text-slate-800 mb-4 border-b-2 border-rnm pb-3"><i class="fa-solid fa-hospital-user text-rnm mr-4"></i> Impact of Hospitalization</h2>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div class="bg-red-50 p-4 rounded-xl"><strong>Infant/Toddler</strong><br><span class="reveal-text">Separation anxiety (protest, despair, detachment), stranger anxiety, regression (thumbsucking, bedwetting).</span></div>
+                        <div class="bg-amber-50 p-4 rounded-xl"><strong>Preschool</strong><br><span class="reveal-text">Fear of bodily harm/mutilation, magical thinking, guilt (believes illness is punishment), regression.</span></div>
+                        <div class="bg-green-50 p-4 rounded-xl"><strong>School‑Age & Adolescent</strong><br><span class="reveal-text">Loss of control, fear of death, body image changes, separation from peers, loss of privacy.</span></div>
+                    </div>
+                    <canvas id="separationChart" width="400" height="200" style="max-width:100%; height:auto; margin-top:1rem;"></canvas>
+                    <button onclick="openQuiz('hospitalization')" class="mt-6 w-full bg-slate-800 text-white font-black py-3 rounded-xl">Take Quiz → Unlock Next</button>
+                </div>
+            </section>
+
+            <!-- NURSING INTERVENTIONS & FAMILY-CENTERED CARE -->
+            <section id="nursing_care" class="content-section hidden">
+                <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+                    <h2 class="text-3xl font-black text-slate-800 mb-4 border-b-2 border-rnm pb-3"><i class="fa-solid fa-user-nurse text-rnm mr-4"></i> Nursing Interventions & Family‑Centered Care</h2>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>Prepare child for procedures:</strong> <span class="reveal-text">Use age‑appropriate language, play therapy, allow choices (when possible).</span></li>
+                        <li><strong>Minimize separation:</strong> <span class="reveal-text">Encourage rooming‑in, flexible visiting hours, parental presence during procedures.</span></li>
+                        <li><strong>Maintain routines:</strong> <span class="reveal-text">Follow home sleep/meal schedules, bring familiar objects (blanket, toy).</span></li>
+                        <li><strong>Provide play and education:</strong> <span class="reveal-text">Therapeutic play to express feelings, school re‑entry programs.</span></li>
+                        <li><strong>Support siblings:</strong> <span class="reveal-text">Explain illness, prevent jealousy, arrange visits.</span></li>
+                    </ul>
+                    <div class="bg-rnm-light p-3 rounded-lg mt-4"><i class="fa-regular fa-heart"></i> <strong>Mnemonic "P.A.L.S.":</strong> <span class="reveal-text">Prepare, Allow choices, Limit separation, Support routines.</span></div>
+                    <button onclick="openQuiz('nursing_care')" class="mt-6 w-full bg-slate-800 text-white font-black py-3 rounded-xl">Take Quiz → Unlock Next</button>
+                </div>
+            </section>
+
+            <!-- HEALTH MAINTENANCE (WELL-CHILD) -->
+            <section id="maintenance" class="content-section hidden">
+                <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+                    <h2 class="text-3xl font-black text-slate-800 mb-4 border-b-2 border-rnm pb-3"><i class="fa-solid fa-leaf text-rnm mr-4"></i> Health Maintenance (Well‑Child)</h2>
+                    <p>Well‑child care includes regular health supervision visits for <span class="reveal-text">growth monitoring, immunizations, developmental screening, injury prevention, nutrition counseling, and anticipatory guidance.</span></p>
+                    <div class="grid md:grid-cols-2 gap-5 mt-4">
+                        <div><strong>📏 Growth Monitoring</strong><br><span class="reveal-text">Plot height, weight, head circumference on standardized growth charts. Identify faltering growth or obesity.</span></div>
+                        <div><strong>💉 Immunizations</strong><br><span class="reveal-text">Follow national immunization schedule (CDC/Philippines EPI). Key vaccines: HepB, DTaP, IPV, Hib, PCV, MMR, Varicella, HPV, Tdap, Meningococcal.</span></div>
+                        <div><strong>🧩 Developmental Surveillance</strong><br><span class="reveal-text">Use tools like Denver II, PEDS. Screen for autism (M‑CHAT at 18 & 24 months).</span></div>
+                        <div><strong>🍎 Nutrition & Oral Health</strong><br><span class="reveal-text">Breastfeeding support, introduction of solids, limit sugar, dental visits by age 1, fluoride.</span></div>
+                    </div>
+                    <button onclick="openQuiz('maintenance')" class="mt-6 w-full bg-slate-800 text-white font-black py-3 rounded-xl">Take Quiz → Unlock Next</button>
+                </div>
+            </section>
+
+            <!-- MAINTENANCE BY AGE (Toddler to Adolescent) -->
+            <section id="age_groups" class="content-section hidden">
+                <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+                    <h2 class="text-3xl font-black text-slate-800 mb-4 border-b-2 border-rnm pb-3"><i class="fa-solid fa-children text-rnm mr-4"></i> Maintenance by Age (Toddler to Adolescent)</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm border-collapse border">
+                            <thead class="bg-rnm text-white"><tr><th class="p-2">Age</th><th class="p-2">Key Prevention Focus</th><th class="p-2">Anticipatory Guidance</th></tr></thead>
+                            <tbody>
+                                <tr class="bg-slate-50"><td class="border p-2 font-bold">Toddler (1-3)</td><td class="reveal-text">Injury (poison, falls, drowning), immunization catch‑up, dental visit</td><td class="reveal-text">Toilet training, temper tantrums, parallel play, language development</td></tr>
+                                <tr><td class="border p-2 font-bold">Preschool (3-5)</td><td class="reveal-text">Pedestrian safety, booster seat, drowning prevention</td><td class="reveal-text">School readiness, nightmares, body safety, limit screen time</td></tr>
+                                <tr class="bg-slate-50"><td class="border p-2 font-bold">School‑Age (6-12)</td><td class="reveal-text">Sports injury prevention, scoliosis screening, bullying prevention</td><td class="reveal-text">Puberty education, responsibility, healthy habits, peer relationships</td></tr>
+                                <tr><td class="border p-2 font-bold">Adolescent (13-18)</td><td class="reveal-text">Motor vehicle safety, STI prevention, substance use, mental health screening</td><td class="reveal-text">Sexual health, contraceptive options, healthy body image, career planning</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <canvas id="maintenanceChart" width="500" height="250" style="max-width:100%; margin-top:1rem;"></canvas>
+                    <button onclick="openQuiz('age_groups')" class="mt-6 w-full bg-slate-800 text-white font-black py-3 rounded-xl">Take Quiz → Unlock Next</button>
+                </div>
+            </section>
+
+            <!-- CHRONIC ILLNESS & SPECIAL NEEDS -->
+            <section id="chronic" class="content-section hidden">
+                <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+                    <h2 class="text-3xl font-black text-slate-800 mb-4 border-b-2 border-rnm pb-3"><i class="fa-solid fa-wheelchair text-rnm mr-4"></i> Chronic Illness & Special Needs</h2>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>Impact on child:</strong> <span class="reveal-text">Limited activities, social isolation, school absences, altered body image, depression.</span></li>
+                        <li><strong>Impact on family:</strong> <span class="reveal-text">Financial strain, caregiver fatigue, marital stress, neglect of siblings, grief.</span></li>
+                        <li><strong>Nursing role:</strong> <span class="reveal-text">Coordinate care, promote normalcy, support self‑management, connect to community resources (support groups, respite care).</span></li>
+                        <li><strong>Transition to adult care:</strong> <span class="reveal-text">Start early, teach self‑advocacy, ensure continuity.</span></li>
+                    </ul>
+                    <div class="bg-blue-50 p-3 rounded-lg mt-4"><i class="fa-regular fa-lightbulb"></i> <strong>Mnemonic "C.O.P.E.":</strong> <span class="reveal-text">Coordinate services, Offer emotional support, Promote independence, Educate family.</span></div>
+                    <button onclick="openQuiz('chronic')" class="mt-6 w-full bg-slate-800 text-white font-black py-3 rounded-xl">Take Quiz → Unlock Next</button>
+                </div>
+            </section>
+
+            <!-- FLASHCARDS & MNEMONICS -->
+            <section id="flashcards" class="content-section hidden">
+                <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+                    <h2 class="text-3xl font-black text-slate-800 mb-4 border-b-2 border-rnm pb-3"><i class="fa-solid fa-cards text-rnm mr-4"></i> Flashcards & Mnemonics</h2>
+                    <div class="grid md:grid-cols-2 gap-5">
+                        <div class="flashcard p-4" onclick="toggleFlash(this)"><div class="font-bold text-rnm">Q: Separation anxiety stages?</div><div class="flash-answer hidden mt-2">Protest → Despair → Detachment</div></div>
+                        <div class="flashcard p-4" onclick="toggleFlash(this)"><div class="font-bold text-rnm">Q: Preschooler fear of hospitalization?</div><div class="flash-answer hidden mt-2">Fear of bodily harm/mutilation</div></div>
+                        <div class="flashcard p-4" onclick="toggleFlash(this)"><div class="font-bold text-rnm">Q: Family‑centered care mnemonic?</div><div class="flash-answer hidden mt-2">P.A.L.S. (Prepare, Allow choices, Limit separation, Support routines)</div></div>
+                        <div class="flashcard p-4" onclick="toggleFlash(this)"><div class="font-bold text-rnm">Q: Chronic illness mnemonic?</div><div class="flash-answer hidden mt-2">C.O.P.E. (Coordinate, Offer, Promote, Educate)</div></div>
+                        <div class="flashcard p-4" onclick="toggleFlash(this)"><div class="font-bold text-rnm">Q: Adolescent injury prevention priority?</div><div class="flash-answer hidden mt-2">Motor vehicle accidents (seatbelt, no distracted driving)</div></div>
+                        <div class="flashcard p-4" onclick="toggleFlash(this)"><div class="font-bold text-rnm">Q: Toddler injury prevention priority?</div><div class="flash-answer hidden mt-2">Poisoning (lock cabinets), falls, drowning</div></div>
+                    </div>
+                    <div class="mt-6 bg-lime-50 p-4 rounded-xl"><strong>🧠 Mnemonics Recap:</strong><br><span class="reveal-text">"P.A.L.S." – Prepare, Allow choices, Limit separation, Support routines.<br>"C.O.P.E." – Coordinate, Offer, Promote, Educate.</span></div>
+                    <button onclick="openQuiz('flashcards')" class="mt-6 w-full bg-slate-800 text-white font-black py-3 rounded-xl">Take Quiz → Unlock Final Exam</button>
+                </div>
+            </section>
+
+            <!-- FINAL EXAM SECTION -->
+            <section id="final_quiz_sec" class="content-section hidden">
+                <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 text-center min-h-[60vh] flex flex-col justify-center items-center">
+                    <i class="fa-solid fa-graduation-cap text-8xl text-amber-500 mb-6"></i>
+                    <h2 class="text-4xl font-black text-slate-800 mb-4">Final 50‑Item Exam</h2>
+                    <p class="text-lg text-slate-600 mb-8 max-w-2xl">Covers restoration, hospitalization impact, nursing interventions, well‑child maintenance, chronic illness, and mnemonics. Score ≥75% to pass.</p>
+                    <button onclick="openQuiz('final_quiz')" class="w-full max-w-md bg-slate-800 text-white font-black py-4 rounded-xl shadow-md text-xl">Start Final Exam</button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- QUIZ MODAL -->
+    <div id="quiz-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4">
+        <div class="bg-white w-full max-w-3xl rounded-2xl shadow-2xl p-6 md:p-8 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeQuiz()" class="absolute top-4 right-4 text-slate-400 hover:text-red-500"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            <h2 id="quiz-title" class="text-3xl font-black text-slate-800 mb-2"></h2>
+            <div id="quiz-questions-container" class="space-y-4 mt-4"></div>
+            <button id="quiz-submit-btn" onclick="submitQuiz()" class="mt-8 w-full bg-rnm text-white font-bold py-4 rounded-xl shadow-lg">Submit Answers</button>
+            <div id="quiz-result-container" class="hidden mt-6 p-4 rounded-xl bg-slate-100"></div>
+        </div>
+    </div>
+
+    <script>
+        let unlockedSections = ['home'];
+        // QUIZZES (10 questions each)
+        const quizzes = {
+            restoration: { title: "Restoration (Care During Illness)", next: "hospitalization", questions: [
+                { q: "Restoration in MCN focuses on:", options: ["Preventing illness", "Returning child to optimal health after illness", "End‑of‑life care", "Palliative care only"], ans: 1 },
+                { q: "Which of the following is part of physical restoration?", options: ["Play therapy", "Administering medications and monitoring vitals", "School re‑entry program", "Support groups for parents"], ans: 1 },
+                { q: "Emotional restoration for a hospitalized child includes:", options: ["Addressing fear and anxiety", "Only physical care", "Discharging early", "Avoiding family contact"], ans: 0 },
+                { q: "Involving parents in care during hospitalization supports:", options: ["Family‑centered care and better outcomes", "Increased medical errors", "Child's regression", "None"], ans: 0 },
+                { q: "A toddler with fever and dehydration needs restoration of:", options: ["Fluid and electrolyte balance", "Only cognitive function", "Only motor skills", "Only social skills"], ans: 0 },
+                { q: "Which of the following is an example of restoration nursing intervention?", options: ["Teaching a new diabetic to self‑inject insulin", "Immunizing a toddler", "Scoliosis screening", "Car seat education"], ans: 0 },
+                { q: "Restoration for a child with asthma includes:", options: ["Avoiding triggers and medication compliance", "Only emergency care", "Surgery", "Hospitalization only"], ans: 0 },
+                { q: "Play therapy is used to:", options: ["Help child express feelings about illness", "Entertain only", "Replace medical treatment", "Delay procedures"], ans: 0 },
+                { q: "Home care instructions for a child with pneumonia are part of:", options: ["Restoration", "Primary prevention", "Health maintenance", "Injury prevention"], ans: 0 },
+                { q: "The goal of restoration is:", options: ["Cure all diseases", "Achieve optimal functioning", "Prevent all hospitalizations", "Only treat symptoms"], ans: 1 }
+            ]},
+            hospitalization: { title: "Impact of Hospitalization", next: "nursing_care", questions: [
+                { q: "Separation anxiety is most pronounced in:", options: ["Adolescents", "Toddlers", "Newborns", "School‑age children"], ans: 1 },
+                { q: "The first stage of separation anxiety is:", options: ["Detachment", "Despair", "Protest", "Acceptance"], ans: 2 },
+                { q: "A preschooler who believes his illness is punishment is exhibiting:", options: ["Magical thinking", "Concrete operations", "Formal operations", "Sensorimotor"], ans: 0 },
+                { q: "Adolescents hospitalized fear most:", options: ["Separation from parents", "Loss of control and body image changes", "Stranger anxiety", "Needles"], ans: 1 },
+                { q: "School‑age children hospitalized may regress to:", options: ["Thumb sucking and bedwetting", "Teenage behavior", "Independence", "None"], ans: 0 },
+                { q: "Which age group fears bodily harm/mutilation most?", options: ["Infant", "Toddler", "Preschooler", "Adolescent"], ans: 2 },
+                { q: "A hospitalized toddler who is quiet and withdrawn may be in which stage of separation?", options: ["Protest", "Despair", "Detachment", "Denial"], ans: 1 },
+                { q: "Prolonged hospitalization without parental presence may lead to:", options: ["Secure attachment", "Emotional detachment and long‑term effects", "Improved behavior", "No effect"], ans: 1 },
+                { q: "Which intervention reduces separation anxiety?", options: ["Rooming‑in and flexible visiting hours", "Restricting visits", "Separating child from family", "Only phone calls"], ans: 0 },
+                { q: "A child who ignores parents upon return after a long hospitalization is in the _____ stage.", options: ["Protest", "Despair", "Detachment", "Bargaining"], ans: 2 }
+            ]},
+            nursing_care: { title: "Nursing Interventions & Family‑Centered Care", next: "maintenance", questions: [
+                { q: "The mnemonic 'P.A.L.S.' stands for:", options: ["Prepare, Allow choices, Limit separation, Support routines", "Physical, Active, Loving, Safe", "Parents, Adolescents, Little, Siblings", "None"], ans: 0 },
+                { q: "To prepare a preschooler for a procedure, the nurse should:", options: ["Use detailed medical terms", "Use play therapy and simple explanations", "Avoid any explanation", "Tell child it's a punishment"], ans: 1 },
+                { q: "Family‑centered care emphasizes:", options: ["Parents as partners in care", "Excluding parents from decisions", "Only child's needs", "Only medical staff decisions"], ans: 0 },
+                { q: "Which of the following helps maintain routine during hospitalization?", options: ["Follow home sleep and meal schedules", "Ignore child's usual habits", "Keep child awake all night", "Change feeding times randomly"], ans: 0 },
+                { q: "Therapeutic play is used to:", options: ["Allow child to express feelings and understand procedures", "Replace all medical care", "Only entertain", "Distract from pain only"], ans: 0 },
+                { q: "School re‑entry programs are important for children with:", options: ["Chronic illness or long absences", "Minor colds", "Routine check‑ups", "Immunizations"], ans: 0 },
+                { q: "Siblings of a hospitalized child may feel:", options: ["Jealousy, guilt, fear", "Only happiness", "No emotions", "Only relief"], ans: 0 },
+                { q: "A nurse can support parents of a hospitalized child by:", options: ["Providing clear information and involving them in care", "Excluding them from decisions", "Blaming them for illness", "Ignoring their concerns"], ans: 0 },
+                { q: "Allowing a child to choose which arm for injection is an example of:", options: ["Giving control and reducing anxiety", "Inappropriate choice", "Delaying procedure", "Ignoring autonomy"], ans: 0 },
+                { q: "Which of the following is a principle of family‑centered care?", options: ["Respect for family values and choices", "Strict visitor restrictions", "Only medical staff know best", "Parents not allowed during rounds"], ans: 0 }
+            ]},
+            maintenance: { title: "Health Maintenance (Well‑Child)", next: "age_groups", questions: [
+                { q: "Well‑child care includes all EXCEPT:", options: ["Growth monitoring", "Immunizations", "Emergency surgery", "Anticipatory guidance"], ans: 2 },
+                { q: "Developmental screening tool for children is:", options: ["Denver II", "Apgar", "Glasgow", "Pain scale"], ans: 0 },
+                { q: "First dental visit is recommended by age:", options: ["6 months", "12 months", "24 months", "3 years"], ans: 1 },
+                { q: "Which of the following is part of anticipatory guidance?", options: ["Teaching parents about age‑appropriate safety", "Only giving vaccines", "Only taking vitals", "Only measuring height"], ans: 0 },
+                { q: "The M‑CHAT screening tool is used to detect:", options: ["Autism spectrum disorder", "Hearing loss", "Vision problems", "Developmental delay only"], ans: 0 },
+                { q: "Which immunization is given at 4‑6 years?", options: ["MMR #2", "Hep B", "HPV", "Meningococcal"], ans: 0 },
+                { q: "Growth faltering (failure to thrive) is identified by:", options: ["Weight crossing percentiles downward", "Normal growth", "Overweight", "Tall stature"], ans: 0 },
+                { q: "Which is NOT a component of well‑child maintenance?", options: ["Injury prevention counseling", "Nutrition education", "Surgical correction of congenital anomalies", "Immunization review"], ans: 2 },
+                { q: "Anticipatory guidance for a 12‑month‑old includes:", options: ["Toilet training", "Pedestrian safety", "Injury prevention and weaning", "Sex education"], ans: 2 },
+                { q: "The recommended well‑child visit schedule includes visits at:", options: ["2,4,6,9,12,15,18,24 months then yearly", "Only at birth", "Only at school entry", "Only when sick"], ans: 0 }
+            ]},
+            age_groups: { title: "Maintenance by Age (Toddler to Adolescent)", next: "chronic", questions: [
+                { q: "Leading cause of death in toddlers is:", options: ["Accidents/injuries", "Infections", "Cancer", "Congenital anomalies"], ans: 0 },
+                { q: "Which age group needs pedestrian safety education?", options: ["Preschool", "Toddler", "Infant", "Adolescent"], ans: 0 },
+                { q: "Scoliosis screening is typically done at:", options: ["10‑12 years for girls", "2 years", "6 months", "16 years"], ans: 0 },
+                { q: "Which is a priority for adolescent injury prevention?", options: ["Motor vehicle safety", "Drowning", "Poisoning", "Falls"], ans: 0 },
+                { q: "Toddlers should be introduced to toilet training when they show signs of:", options: ["Readiness (stays dry, communicates need)", "At exactly 18 months", "At 3 years", "Never"], ans: 0 },
+                { q: "For preschoolers, limit screen time to:", options: ["<1 hour/day", "<2 hours/day", "No limit", "3 hours/day"], ans: 0 },
+                { q: "School‑age children need education about:", options: ["Puberty and body changes", "Sexual intercourse only", "Contraception only", "None"], ans: 0 },
+                { q: "Adolescents should receive HPV vaccine at:", options: ["11‑12 years", "6 months", "4 years", "16 years"], ans: 0 },
+                { q: "Which immunization is recommended at 16 years?", options: ["Meningococcal booster", "MMR", "DTaP", "Hep B"], ans: 0 },
+                { q: "Toddler car seat should be:", options: ["Rear‑facing until at least 2 years", "Forward‑facing at 1 year", "Booster seat at 2 years", "No car seat"], ans: 0 }
+            ]},
+            chronic: { title: "Chronic Illness & Special Needs", next: "flashcards", questions: [
+                { q: "Chronic illness can lead to which family stress?", options: ["Financial strain, caregiver fatigue", "No stress", "Only child stress", "Only financial"], ans: 0 },
+                { q: "The mnemonic 'C.O.P.E.' stands for:", options: ["Coordinate, Offer, Promote, Educate", "Care, Observe, Protect, Encourage", "Child, Oxygen, Pain, Evaluation", "None"], ans: 0 },
+                { q: "Nursing role for a child with chronic illness includes:", options: ["Promote normalcy and self‑management", "Only acute care", "Surgery only", "Isolation"], ans: 0 },
+                { q: "Transition to adult care should begin:", options: ["Early adolescence", "At 18 years", "After high school", "At diagnosis only"], ans: 0 },
+                { q: "Respite care for families of children with special needs provides:", options: ["Temporary relief for caregivers", "Permanent placement", "Only financial aid", "Surgical intervention"], ans: 0 },
+                { q: "Children with chronic illness are at higher risk for:", options: ["Depression and social isolation", "Perfect health", "No complications", "Only physical issues"], ans: 0 },
+                { q: "Support groups for parents of children with chronic illness help by:", options: ["Sharing experiences and reducing isolation", "Increasing financial burden", "Replacing medical care", "None"], ans: 0 },
+                { q: "School absences due to chronic illness may require:", options: ["Homebound instruction and school re‑entry plan", "Holding child back a grade", "Ignoring education", "None"], ans: 0 },
+                { q: "A child with a chronic condition should be encouraged to:", options: ["Participate in age‑appropriate activities as much as possible", "Avoid all activities", "Be isolated", "Stop all medications"], ans: 0 },
+                { q: "Which statement about chronic illness is TRUE?", options: ["It affects the whole family", "It only affects the child", "No nursing support needed", "Only physical care required"], ans: 0 }
+            ]},
+            flashcards: { title: "Flashcards & Mnemonics", next: "final_quiz_sec", questions: [
+                { q: "The mnemonic for family‑centered care is:", options: ["P.A.L.S.", "C.O.P.E.", "A.A.U.R.A.M.N.", "H.E.L.P.E.R.R."], ans: 0 },
+                { q: "In P.A.L.S., the 'S' stands for:", options: ["Support routines", "Separation", "Safety", "School"], ans: 0 },
+                { q: "The mnemonic for chronic illness nursing is:", options: ["C.O.P.E.", "P.A.L.S.", "A.A.U.R.A.M.N.", "H.E.L.P.E.R.R."], ans: 0 },
+                { q: "In C.O.P.E., the 'O' stands for:", options: ["Offer emotional support", "Oxygen", "Observation", "Operation"], ans: 0 },
+                { q: "Separation anxiety stages mnemonic is:", options: ["Protest, Despair, Detachment", "P.A.L.S.", "C.O.P.E.", "A.R.M.M."], ans: 0 },
+                { q: "Which mnemonic helps recall interventions for hospitalized child?", options: ["P.A.L.S.", "C.O.P.E.", "A.A.U.R.A.M.N.", "H.E.L.P.E.R.R."], ans: 0 },
+                { q: "A flashcard for 'preschooler fear' answer is:", options: ["Fear of bodily harm", "Separation anxiety", "Loss of control", "Peer rejection"], ans: 0 },
+                { q: "The mnemonic for injury prevention by age groups is:", options: ["T.P.S.A. (Toddler, Preschool, School‑Age, Adolescent)", "P.A.L.S.", "C.O.P.E.", "A.A.U.R.A.M.N."], ans: 0 },
+                { q: "Which mnemonic is used for well‑child maintenance?", options: ["Anticipatory guidance topics", "P.A.L.S.", "C.O.P.E.", "A.A.U.R.A.M.N."], ans: 0 },
+                { q: "Flashcard: 'Toddler injury prevention priority' answer is:", options: ["Poisoning, falls, drowning", "Motor vehicle accidents", "Bullying", "Sports injuries"], ans: 0 }
+            ]}
+        };
+        // Build final 50-item exam
+        let finalQ = [];
+        for(let sec of ['restoration','hospitalization','nursing_care','maintenance','age_groups','chronic','flashcards']) {
+            finalQ.push(...quizzes[sec].questions.slice(0,7));
+        }
+        while(finalQ.length < 50) finalQ.push({ q: "The most important nursing intervention to reduce separation anxiety in hospitalized toddlers is:", options: ["Encourage rooming‑in and parental presence", "Restrict visits", "Sedate the child", "Ignore crying"], ans: 0 });
+        quizzes.final_quiz = { title: "Final 50‑Item Exam: Restoration & Maintenance", next: null, questions: finalQ };
+
+        let currentQuiz = null;
+        let separationChart = null, maintenanceChart = null;
+
+        function initCharts() {
+            if(document.getElementById('separationChart')) {
+                const ctx = document.getElementById('separationChart').getContext('2d');
+                separationChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Protest', 'Despair', 'Detachment'],
+                        datasets: [{ label: 'Intensity of Response', data: [90, 50, 20], borderColor: '#b45309', backgroundColor: 'rgba(180,83,9,0.1)', fill: true }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: true }
+                });
+            }
+            if(document.getElementById('maintenanceChart')) {
+                const ctx2 = document.getElementById('maintenanceChart').getContext('2d');
+                maintenanceChart = new Chart(ctx2, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Toddler', 'Preschool', 'School-Age', 'Adolescent'],
+                        datasets: [{ label: 'Number of Well-Child Visits (approx. per year)', data: [3, 2, 1.5, 1], backgroundColor: '#65a30d', borderRadius: 6 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: true }
+                });
+            }
+        }
+
+        function toggleFlash(el) { const ans = el.querySelector('.flash-answer'); if(ans) ans.classList.toggle('hidden'); }
+        function unlockFirstSection() { if(!unlockedSections.includes('restoration')) { unlockedSections.push('restoration'); updateSidebarUI(); } showSection('restoration'); }
+        function showSection(sectionId) {
+            if (!unlockedSections.includes(sectionId) && sectionId !== 'home') { alert("Complete the Active Recall Quiz at the bottom of the previous section to unlock."); return; }
+            document.querySelectorAll('.content-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(sectionId)?.classList.remove('hidden');
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('bg-rnm-light','text-rnm-dark','border-r-4','border-rnm-dark'));
+            const activeBtn = document.getElementById('btn-'+sectionId);
+            if(activeBtn) activeBtn.classList.add('bg-rnm-light','text-rnm-dark','border-r-4','border-rnm-dark');
+            if(window.innerWidth < 768) document.getElementById('sidebar').classList.add('hidden');
+            if((sectionId === 'hospitalization' || sectionId === 'age_groups') && !separationChart) setTimeout(initCharts, 50);
+        }
+        function updateSidebarUI() {
+            const sections = ['home','restoration','hospitalization','nursing_care','maintenance','age_groups','chronic','flashcards','final_quiz_sec'];
+            sections.forEach(sec => {
+                const btn = document.getElementById('btn-'+sec);
+                if(!btn) return;
+                const lock = btn.querySelector('.fa-lock'), icon = btn.querySelector('.nav-icon');
+                if(unlockedSections.includes(sec) || sec==='home') { btn.classList.remove('locked-section'); if(lock) lock.classList.add('hidden'); if(icon) icon.classList.remove('hidden'); }
+                else { btn.classList.add('locked-section'); if(lock) lock.classList.remove('hidden'); if(icon) icon.classList.add('hidden'); }
+            });
+        }
+        function openQuiz(sectionId) { currentQuiz = sectionId; const qd = quizzes[sectionId]; if(!qd) return; document.getElementById('quiz-title').innerHTML = qd.title; const container = document.getElementById('quiz-questions-container'); container.innerHTML = ''; qd.questions.forEach((q, idx) => { let html = `<div class="bg-slate-50 p-4 rounded-xl mb-4"><p class="font-bold mb-3">${idx+1}. ${q.q}</p><div class="space-y-2">`; q.options.forEach((opt,oi) => { html += `<label class="flex items-center space-x-3 p-2 rounded-lg hover:bg-white cursor-pointer"><input type="radio" name="q${idx}" value="${oi}" class="form-radio text-rnm"><span>${opt}</span></label>`; }); html += `</div><div class="feedback-${idx} text-sm mt-2 hidden"></div></div>`; container.innerHTML += html; }); document.getElementById('quiz-submit-btn').classList.remove('hidden'); document.getElementById('quiz-result-container').classList.add('hidden'); document.getElementById('quiz-modal').classList.remove('hidden'); }
+        function closeQuiz() { document.getElementById('quiz-modal').classList.add('hidden'); }
+        function submitQuiz() {
+            const qd = quizzes[currentQuiz];
+            if(!qd) return;
+            let score = 0;
+            for(let i=0; i<qd.questions.length; i++) {
+                const sel = document.querySelector(`input[name="q${i}"]:checked`);
+                if(sel && parseInt(sel.value)===qd.questions[i].ans) score++;
+                const fbDiv = document.querySelector(`.feedback-${i}`);
+                if(fbDiv){
+                    fbDiv.classList.remove('hidden');
+                    const correctTxt = qd.questions[i].options[qd.questions[i].ans];
+                    if(sel && parseInt(sel.value)===qd.questions[i].ans) { fbDiv.innerHTML='<span class="text-green-700">✓ Correct</span>'; fbDiv.parentElement?.classList.add('quiz-feedback-correct'); }
+                    else { const selectedTxt = sel? qd.questions[i].options[parseInt(sel.value)]:"No answer"; fbDiv.innerHTML=`<span class="text-red-700">✗ Incorrect. Correct: ${correctTxt}. You answered: ${selectedTxt}</span>`; fbDiv.parentElement?.classList.add('quiz-feedback-wrong'); }
+                }
+            }
+            let percent = (score/qd.questions.length)*100;
+            let resultDiv = document.getElementById('quiz-result-container');
+            document.getElementById('quiz-submit-btn').classList.add('hidden');
+            resultDiv.classList.remove('hidden');
+            if(percent>=75){
+                if(currentQuiz==='final_quiz'){ resultDiv.innerHTML=`<div class="text-green-600 text-4xl text-center">🎉 Excellent! Score ${score}/${qd.questions.length} (${percent}%)<br>You mastered Restoration & Maintenance</div><button onclick="closeQuiz()" class="mt-4 bg-rnm text-white px-6 py-2 rounded-xl">Close</button>`; return; }
+                if(quizzes[currentQuiz].next && !unlockedSections.includes(quizzes[currentQuiz].next)) unlockedSections.push(quizzes[currentQuiz].next);
+                if(quizzes[currentQuiz].next === 'flashcards' && !unlockedSections.includes('final_quiz_sec')) unlockedSections.push('final_quiz_sec');
+                updateSidebarUI();
+                resultDiv.innerHTML=`<div class="text-green-600 text-3xl text-center">✅ Passed! (${score}/${qd.questions.length})</div><button onclick="closeQuiz(); showSection('${quizzes[currentQuiz].next}')" class="mt-4 bg-green-600 text-white px-6 py-2 rounded-xl">Unlock Next Section</button>`;
+            } else { resultDiv.innerHTML=`<div class="text-red-600 text-3xl text-center">❌ Failed: ${score}/${qd.questions.length} (${percent}%)<br>Need 75%</div><button onclick="openQuiz('${currentQuiz}')" class="mt-4 bg-slate-600 text-white px-6 py-2 rounded-xl">Try Again</button>`; }
+        }
+        function toggleRecallMode() { const active = !document.body.classList.contains('recall-mode'); const toggle=document.getElementById('recall-toggle'),knob=document.getElementById('recall-knob'); if(active){ document.body.classList.add('recall-mode'); toggle.classList.add('bg-rnm-dark'); knob.classList.add('translate-x-6'); } else { document.body.classList.remove('recall-mode'); toggle.classList.remove('bg-rnm-dark'); knob.classList.remove('translate-x-6'); } }
+        function toggleMobileMenu() { const s=document.getElementById('sidebar'); if(s.classList.contains('hidden')) s.classList.remove('hidden','flex','absolute','h-full','z-50'); else s.classList.add('hidden'); }
+        document.addEventListener('DOMContentLoaded', () => { updateSidebarUI(); document.querySelectorAll('.reveal-text').forEach(el => el.addEventListener('click', function(){ if(document.body.classList.contains('recall-mode')) this.classList.toggle('revealed'); })); });
+    </script>
+</body>
+</html>
